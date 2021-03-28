@@ -13,15 +13,6 @@ static struct k_delayed_work attention_blink_work;
 static void attention_blink(struct k_work *work);
 
 ////////////////// FORWORDS
-static void led_set(struct bt_mesh_onoff_srv *srv, struct bt_mesh_msg_ctx *ctx,
-		    const struct bt_mesh_onoff_set *set,
-		    struct bt_mesh_onoff_status *rsp);
-
-static void led_get(struct bt_mesh_onoff_srv *srv, struct bt_mesh_msg_ctx *ctx,
-		    struct bt_mesh_onoff_status *rsp);
-
-
-
 //gus
 static void gus_set(struct bt_mesh_lvl_srv *srv, struct bt_mesh_msg_ctx *ctx,
 		    const struct bt_mesh_lvl_set *set,
@@ -33,27 +24,6 @@ static void gus_get(struct bt_mesh_lvl_srv *srv, struct bt_mesh_msg_ctx *ctx,
 
 
 ////////////////// STRUCTS
-
-static const struct bt_mesh_onoff_srv_handlers onoff_handlers = {
-	.set = led_set,
-	.get = led_get,
-};
-
-struct led_ctx {
-	struct bt_mesh_onoff_srv srv;
-	struct k_delayed_work work;
-	uint32_t remaining;
-	bool value;
-};
-
-static struct led_ctx led_ctx[4] = {
-	[0 ... 3] = {
-		.srv = BT_MESH_ONOFF_SRV_INIT(&onoff_handlers),
-	}
-};
-
-
-
 //gus
 static const struct bt_mesh_lvl_srv_handlers gus_handlers = {
 	.set = gus_set,
@@ -75,18 +45,6 @@ static struct gus_ctx gus_ctx[4] = {
 
 
 ///////////////////// PROCEDURES
-static void led_transition_start(struct led_ctx *led)
-{
-	int led_idx = led - &led_ctx[0];
-
-	/* As long as the transition is in progress, the onoff
-	 * state is "on":
-	 */
-	dk_set_led(led_idx, true);
-	k_delayed_work_submit(&led->work, K_MSEC(led->remaining));
-	led->remaining = 0;
-}
-
 static void gus_transition_start(struct gus_ctx *gus)
 {
 	int gus_idx = gus - &gus_ctx[0];
@@ -100,17 +58,6 @@ static void gus_transition_start(struct gus_ctx *gus)
 }
 
 
-
-
-static void led_status(struct led_ctx *led, struct bt_mesh_onoff_status *status)
-{
-	status->remaining_time =
-		k_delayed_work_remaining_get(&led->work) + led->remaining;
-	status->target_on_off = led->value;
-	/* As long as the transition is in progress, the onoff state is "on": */
-	status->present_on_off = led->value || status->remaining_time;
-}
-
 static void gus_status(struct gus_ctx *gus, struct bt_mesh_lvl_status *status)
 {
 	status->remaining_time =
@@ -118,39 +65,6 @@ static void gus_status(struct gus_ctx *gus, struct bt_mesh_lvl_status *status)
 	status->target = gus->value;
 	/* As long as the transition is in progress, the onoff state is "on": */
 	status->current = gus->value || status->remaining_time;
-}
-
-
-
-
-static void led_set(struct bt_mesh_onoff_srv *srv, struct bt_mesh_msg_ctx *ctx,
-		    const struct bt_mesh_onoff_set *set,
-		    struct bt_mesh_onoff_status *rsp)
-{
-	struct led_ctx *led = CONTAINER_OF(srv, struct led_ctx, srv);
-	int led_idx = led - &led_ctx[0];
-printk("Set LED %d\n",led->value);
-
-	if (set->on_off == led->value) {
-		goto respond;
-	}
-
-	led->value = set->on_off;
-	led->remaining = set->transition->time;
-
-	if (set->transition->delay > 0) {
-		k_delayed_work_submit(&led->work,
-				      K_MSEC(set->transition->delay));
-	} else if (set->transition->time > 0) {
-		led_transition_start(led);
-	} else {
-		dk_set_led(led_idx, set->on_off);
-	}
-
-respond:
-	if (rsp) {
-		led_status(led, rsp);
-	}
 }
 
 
@@ -229,22 +143,7 @@ k_delayed_work_cancel(&attention_blink_work);
                     dk_set_leds(0b00000000);
                 break;               
                 }
-        /*
-		dk_set_led(0, set->lvl & 0x2000);
-		dk_set_led(1, set->lvl & 0x4000);
-		dk_set_led(2, set->lvl & 0x8000);
-		dk_set_led(3, (uint16_t)set->lvl == 0xE000);
-		dk_set_led(4, (uint16_t)set->lvl == 0xA000);
-		dk_set_led(5, (uint16_t)set->lvl == 0xC000);
-
-                if (set->lvl == 0x0000) {
-                  	k_delayed_work_submit(&attention_blink_work, K_NO_WAIT);
-                }
-                if (set->lvl == 0x2000) {
-                  	dk_set_leds(0x11);
-                }
-                */
-	}
+ 	}
 
 respond:
 	if (rsp) {
@@ -252,19 +151,6 @@ respond:
 	}
 }
 
-
-
-
-
-
-
-static void led_get(struct bt_mesh_onoff_srv *srv, struct bt_mesh_msg_ctx *ctx,
-		    struct bt_mesh_onoff_status *rsp)
-{
-	struct led_ctx *led = CONTAINER_OF(srv, struct led_ctx, srv);
-
-	led_status(led, rsp);
-}
 
 static void gus_get(struct bt_mesh_lvl_srv *srv, struct bt_mesh_msg_ctx *ctx,
 		    struct bt_mesh_lvl_status *rsp)
@@ -274,28 +160,6 @@ static void gus_get(struct bt_mesh_lvl_srv *srv, struct bt_mesh_msg_ctx *ctx,
 	gus_status(gus, rsp);
 }
 
-
-
-
-
-
-
-static void led_work(struct k_work *work)
-{
-	struct led_ctx *led = CONTAINER_OF(work, struct led_ctx, work.work);
-	int led_idx = led - &led_ctx[0];
-
-	if (led->remaining) {
-		led_transition_start(led);
-	} else {
-		dk_set_led(led_idx, led->value);
-		/* Publish the new value at the end of the transition */
-		struct bt_mesh_onoff_status status;
-
-		led_status(led, &status);
-		bt_mesh_onoff_srv_pub(&led->srv, NULL, &status);
-	}
-}
 
 static void gus_work(struct k_work *work)
 {
@@ -364,18 +228,7 @@ static struct bt_mesh_elem elements[] = {
 		1, BT_MESH_MODEL_LIST(
 			BT_MESH_MODEL_CFG_SRV,
 			BT_MESH_MODEL_HEALTH_SRV(&health_srv, &health_pub),
-			BT_MESH_MODEL_ONOFF_SRV(&led_ctx[0].srv)),
-		BT_MESH_MODEL_NONE),
-	BT_MESH_ELEM(
-		2, BT_MESH_MODEL_LIST(
-                        BT_MESH_MODEL_ONOFF_SRV(&led_ctx[1].srv),
-                        BT_MESH_MODEL_LVL_SRV(&gus_ctx[1].srv)),
-		BT_MESH_MODEL_NONE),
-	BT_MESH_ELEM(
-		3, BT_MESH_MODEL_LIST(BT_MESH_MODEL_ONOFF_SRV(&led_ctx[2].srv)),
-		BT_MESH_MODEL_NONE),
-	BT_MESH_ELEM(
-		4, BT_MESH_MODEL_LIST(BT_MESH_MODEL_ONOFF_SRV(&led_ctx[3].srv)),
+                        BT_MESH_MODEL_LVL_SRV(&gus_ctx[0].srv)),
 		BT_MESH_MODEL_NONE),
 };
 
@@ -416,10 +269,6 @@ const struct bt_mesh_comp *gus_model_handler_init(void)
 
 
 	k_delayed_work_init(&attention_blink_work, attention_blink);
-
-	for (int i = 0; i < ARRAY_SIZE(led_ctx); ++i) {
-		k_delayed_work_init(&led_ctx[i].work, led_work);
-	}
 
 	for (int i = 0; i < ARRAY_SIZE(gus_ctx); ++i) {
 		k_delayed_work_init(&gus_ctx[i].work, gus_work);
