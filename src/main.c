@@ -57,11 +57,10 @@ void main(void)
 	}
 
         uint8_t led_bits = 1;
-        //while (1) {
-        //k_sleep(K_SECONDS(30));
-        //    bt_mesh_reset();
-        //    dk_set_leds(led_bits);
-        //    led_bits = led_bits << 1;
-        //    led_bits = MAX(led_bits,1);
-        //}
+
+
+        while (1) {
+        k_sleep(K_MSEC(200));
+
+        }
 }

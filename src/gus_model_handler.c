@@ -37,22 +37,18 @@ struct gus_ctx {
 	uint16_t value;
 };
 
-static struct gus_ctx gus_ctx[4] = {
-	[0 ... 3] = {
+static struct gus_ctx gus_ctx = {
 		.srv = BT_MESH_LVL_SRV_INIT(&gus_handlers),
-	}
 };
 
 
 ///////////////////// PROCEDURES
 static void gus_transition_start(struct gus_ctx *gus)
 {
-	int gus_idx = gus - &gus_ctx[0];
-
 	/* As long as the transition is in progress, the onoff
 	 * state is "on":
 	 */
-	dk_set_led(gus_idx, true);
+	dk_set_led(0, true);
 	k_delayed_work_submit(&gus->work, K_MSEC(gus->remaining));
 	gus->remaining = 0;
 }
@@ -164,12 +160,11 @@ static void gus_get(struct bt_mesh_lvl_srv *srv, struct bt_mesh_msg_ctx *ctx,
 static void gus_work(struct k_work *work)
 {
 	struct gus_ctx *gus = CONTAINER_OF(work, struct gus_ctx, work.work);
-	int gus_idx = gus - &gus_ctx[0];
 
 	if (gus->remaining) {
 		gus_transition_start(gus);
 	} else {
-		dk_set_led(gus_idx, gus->value);
+		dk_set_led(0, gus->value);
 		/* Publish the new value at the end of the transition */
 		struct bt_mesh_lvl_status status;
 
@@ -197,8 +192,7 @@ static void attention_blink(struct k_work *work)
 		BIT(2),
 		BIT(5),
 	};
-	dk_set_leds(pattern[idx++ % ARRAY_SIZE(pattern)]);
-	k_delayed_work_submit(&attention_blink_work, K_MSEC(130));
+	dk_set_leds(pattern[idx++ % ARRAY_SIZE(pattern)]);       
 }
 
 static void attention_on(struct bt_mesh_model *mod)
@@ -228,7 +222,7 @@ static struct bt_mesh_elem elements[] = {
 		1, BT_MESH_MODEL_LIST(
 			BT_MESH_MODEL_CFG_SRV,
 			BT_MESH_MODEL_HEALTH_SRV(&health_srv, &health_pub),
-                        BT_MESH_MODEL_LVL_SRV(&gus_ctx[0].srv)),
+                        BT_MESH_MODEL_LVL_SRV(&gus_ctx.srv)),
 		BT_MESH_MODEL_NONE),
 };
 
@@ -270,9 +264,9 @@ const struct bt_mesh_comp *gus_model_handler_init(void)
 
 	k_delayed_work_init(&attention_blink_work, attention_blink);
 
-	for (int i = 0; i < ARRAY_SIZE(gus_ctx); ++i) {
-		k_delayed_work_init(&gus_ctx[i].work, gus_work);
-	}
-
+	//for (int i = 0; i < ARRAY_SIZE(gus_ctx); ++i) {
+	//	k_delayed_work_init(&gus_ctx[i].work, gus_work);
+	//}
+        k_delayed_work_init(&gus_ctx.work, gus_work);
 	return &comp;
 }
