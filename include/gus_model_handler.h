@@ -19,6 +19,8 @@ extern "C" {
 #endif
 
 const struct bt_mesh_comp *gus_model_handler_init(void);
+uint16_t get_blinker(void);
+uint16_t dec_blinker(void);
 
 #ifdef __cplusplus
 }

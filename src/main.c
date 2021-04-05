@@ -56,11 +56,14 @@ void main(void)
 		printk("Bluetooth init failed (err %d)\n", err);
 	}
 
-        uint8_t led_bits = 1;
+       
 
 
         while (1) {
-        k_sleep(K_MSEC(200));
-
+            k_sleep(K_MSEC(100));
+            if (get_blinker() > 0) {
+                uint16_t ledbit = dec_blinker() % 6;
+                dk_set_leds(0x01 << ledbit);
+            }
         }
 }

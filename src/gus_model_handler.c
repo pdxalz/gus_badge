@@ -63,6 +63,10 @@ static void gus_status(struct gus_ctx *gus, struct bt_mesh_lvl_status *status)
 	status->current = gus->value || status->remaining_time;
 }
 
+uint16_t blinker = 0;
+uint16_t get_blinker(void) {return blinker;}
+void set_blinker(uint16_t val) {blinker = val;}
+uint16_t dec_blinker(void) {return --blinker;}
 
 enum gus_mode
 {
@@ -100,8 +104,8 @@ k_delayed_work_cancel(&attention_blink_work);
                 switch((uint16_t)set->lvl) {
                 case gm_alert:
 //                case 0:
-                    k_delayed_work_submit(&attention_blink_work, K_NO_WAIT);
-
+//                    k_delayed_work_submit(&attention_blink_work, K_NO_WAIT);
+                    set_blinker(100);
                 break;
                
                 case gm_healthy:
@@ -197,12 +201,12 @@ static void attention_blink(struct k_work *work)
 
 static void attention_on(struct bt_mesh_model *mod)
 {
-	k_delayed_work_submit(&attention_blink_work, K_NO_WAIT);
+	set_blinker(100);
 }
 
 static void attention_off(struct bt_mesh_model *mod)
 {
-	k_delayed_work_cancel(&attention_blink_work);
+	set_blinker(0);
 	dk_set_leds(DK_NO_LEDS_MSK);
 }
 
