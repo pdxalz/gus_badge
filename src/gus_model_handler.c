@@ -38,13 +38,6 @@ static struct gus_ctx gus_ctx = {
 		.srv = BT_MESH_LVL_SRV_INIT(&gus_handlers),
 };
 
-
-///////////////////// PROCEDURES
-static void gus_status(struct gus_ctx *gus, struct bt_mesh_lvl_status *status)
-{
-	status->target = gus->value;
-}
-
 uint16_t blinker = 0;
 uint16_t get_blinker(void) {return blinker;}
 void set_blinker(uint16_t val) {blinker = val;}
@@ -62,13 +55,20 @@ enum gus_mode
   gm_black
 };
 
+///////////////////// PROCEDURES
+static void gus_status(struct gus_ctx *gus, struct bt_mesh_lvl_status *status)
+{
+	status->target = gus->value;
+}
+
+
 static void gus_set(struct bt_mesh_lvl_srv *srv, struct bt_mesh_msg_ctx *ctx,
 		    const struct bt_mesh_lvl_set *set,
 		    struct bt_mesh_lvl_status *rsp)
 {
 	struct gus_ctx *gus = CONTAINER_OF(srv, struct gus_ctx, srv);
 
-	if (set->lvl != gus->value) 
+	if (set->lvl != gus->value || set->lvl == gm_alert) 
         {
     
             switch((uint16_t)set->lvl) {
