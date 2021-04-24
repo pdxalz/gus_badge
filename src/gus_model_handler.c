@@ -68,17 +68,18 @@ static void gus_set(struct bt_mesh_lvl_srv *srv, struct bt_mesh_msg_ctx *ctx,
 {
 	struct gus_ctx *gus = CONTAINER_OF(srv, struct gus_ctx, srv);
 
-	if (set->lvl != gus->value || set->lvl == gm_alert) 
+        set_blinker( set->lvl == gm_alert ? 100 : 0);
+	if (set->lvl != gus->value) 
         {
     
             switch((uint16_t)set->lvl) {
             case gm_alert:
-                set_blinker(100);
+ //               set_blinker(100);
             break;
            
             case gm_healthy:
             case 0x2000:
-                dk_set_leds(0b00100100);
+                dk_set_leds(0b00110110);
             break;
             
             case gm_infected:
