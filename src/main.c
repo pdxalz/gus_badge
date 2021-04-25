@@ -64,5 +64,9 @@ void main(void)
                 uint16_t ledbit = dec_blinker() % 6;
                 dk_set_leds(0x01 << ledbit);
             }
+            else {
+                dk_set_leds(0);
+
+            }
         }
 }
