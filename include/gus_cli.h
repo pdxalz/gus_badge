@@ -21,9 +21,9 @@
 extern "C" {
 #endif
 
-#define GUS_NAME_LEN 12
-#define NUM_REPORTS  4
-#define CONFIG_BT_MESH_GUS_CLI_MESSAGE_LENGTH 16  //13 is probably enough
+//#define GUS_NAME_LEN 12
+#define NUM_PROXIMITY_REPORTS  4
+#define CONFIG_BT_MESH_GUS_NAME_LENGTH 16
 
 /* .. include_startingpoint_gus_cli_rst_1 */
 /** Company ID of the Bluetooth Mesh Gus Client model. */
@@ -64,11 +64,11 @@ extern "C" {
 
 #define BT_MESH_GUS_CLI_MSG_MINLEN_MESSAGE 1
 #define BT_MESH_GUS_CLI_MSG_MAXLEN_MESSAGE (\
-				     CONFIG_BT_MESH_GUS_CLI_MESSAGE_LENGTH \
+				     CONFIG_BT_MESH_GUS_NAME_LENGTH \
 				     + 1) /* + \0 */
-#define BT_MESH_GUS_CLI_MSG_LEN_SIGN_IN_REPLY (2 + GUS_NAME_LEN + 1)
+#define BT_MESH_GUS_CLI_MSG_LEN_SIGN_IN_REPLY (CONFIG_BT_MESH_GUS_NAME_LENGTH + 1)
 #define BT_MESH_GUS_CLI_MSG_LEN_SET_STATE 1
-#define BT_MESH_GUS_CLI_MSG_LEN_REPORT_REPLY (NUM_REPORTS*(2+1))
+#define BT_MESH_GUS_CLI_MSG_LEN_REPORT_REPLY (NUM_PROXIMITY_REPORTS*(2+1))
 #define BT_MESH_GUS_CLI_MSG_LEN_REQUEST 0
 
 
@@ -128,7 +128,7 @@ struct bt_mesh_gus_cli_handlers {
 	 * @param[in] msg Pointer to a name terminated with
 	 * a null character, '\0'.
 	 */
-	void (*const message_sign_in_reply)(struct bt_mesh_gus_cli *gus,
+	void (*const sign_in_reply)(struct bt_mesh_gus_cli *gus,
 				    struct bt_mesh_msg_ctx *ctx,
 				      const uint8_t *msg);
 
@@ -193,9 +193,10 @@ struct bt_mesh_gus_cli {
 	struct bt_mesh_model_pub pub;
 	/** Publication message. */
 	struct net_buf_simple pub_msg;
-	/** Publication message buffer. */
+	/** badge name. */
 	uint8_t buf[BT_MESH_MODEL_BUF_LEN(BT_MESH_GUS_CLI_OP_SET_NAME,
 					  BT_MESH_GUS_CLI_MSG_MAXLEN_MESSAGE)];
+        uint8_t name[CONFIG_BT_MESH_GUS_NAME_LENGTH+1];
 	/** Handler function structure. */
 	const struct bt_mesh_gus_cli_handlers *handlers;
 	/** Current Presence value. */

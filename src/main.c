@@ -65,7 +65,7 @@ void main(void)
                 dk_set_leds(0x01 << ledbit);
             }
             else {
-                dk_set_leds(0);
+//                dk_set_leds(0);
 
             }
         }
