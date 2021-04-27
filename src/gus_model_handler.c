@@ -95,10 +95,30 @@ static void handle_gus_start(struct bt_mesh_gus_cli *gus)
 
 }
 
-static void handle_gus_signin(struct bt_mesh_gus_cli *gus,
-			       struct bt_mesh_msg_ctx *ctx)
+static const uint8_t * spare_name(uint16_t addr)
 {
+    const uint8_t * spare_names[] = {
+    "Alan",    "Ally",    "Brenda", "Bryan", "Carol", "Craig",
+    "Dalene",  "Darrell", "Eric"    };
 
+#define SPARE_NAME_LEN (sizeof(spare_names)/ sizeof(char *))
+    return spare_names[addr % SPARE_NAME_LEN];
+}
+
+
+static void handle_gus_signin(struct bt_mesh_gus_cli *gus,
+			       struct bt_mesh_msg_ctx *ctx,
+                               uint16_t addr)
+{
+    const uint8_t * name = gus->name;
+    size_t len = strlen(name);
+    if (len < 1) {
+        name = spare_name(addr);
+        len = strlen(name);
+    }
+    printk("handle signin %d %s\n", addr, name);
+
+    (void)bt_mesh_gus_cli_sign_in_reply(gus, ctx, name);
 }
 
 static void handle_gus_set_state(struct bt_mesh_gus_cli *gus,

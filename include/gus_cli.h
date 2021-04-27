@@ -117,9 +117,11 @@ struct bt_mesh_gus_cli_handlers {
 	 *
 	 * @param[in] cli Gus client instance that received the text message.
 	 * @param[in] ctx Context of the incoming message.
+	 * @param[in] addr address of sender.
 	 */
 	void (*const sign_in)(struct bt_mesh_gus_cli *gus,
-			       struct bt_mesh_msg_ctx *ctx);
+			       struct bt_mesh_msg_ctx *ctx,
+                               uint16_t addr);
 
 	/** @brief Handler for a sign in reply.
 	 *
@@ -214,6 +216,19 @@ struct bt_mesh_gus_cli {
  */
 int bt_mesh_gus_cli_sign_in(struct bt_mesh_gus_cli *gus);
 
+/** @brief Send a reply for the sign in request to the mesh network.
+ *
+ * @param[in] gus     Gus Client model instance to sign into.
+ * @param[in] name Pointer to a name. Must be terminated with
+ * a null character, '\0'.
+ *
+ * @retval 0 Successfully set the preceive and sent the message.
+ * @retval -EADDRNOTAVAIL Publishing is not configured.
+ * @retval -EAGAIN The device has not been provisioned.
+ */
+int bt_mesh_gus_cli_sign_in_reply(struct bt_mesh_gus_cli *gus, 
+                                    struct bt_mesh_msg_ctx *ctx, 
+                                    const uint8_t * name);
 /** @brief Set the client state.
  *
  * @param[in] gus     Gus Client model instance to set presence on.
@@ -232,7 +247,7 @@ int bt_mesh_gus_cli_state_set(struct bt_mesh_gus_cli *gus,
  *
  * @param[in] cli Gus Client model instance.
  * @param[in] addr    Address of the gus client to set the state of.
- * @param[in] msg Pointer to a name. Must be terminated with
+ * @param[in] name Pointer to a name. Must be terminated with
  * a null character, '\0'.
  *
  * @retval 0 Successfully sent the message.
