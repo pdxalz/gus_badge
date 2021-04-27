@@ -18,6 +18,17 @@ uint16_t dec_blinker(void) {return --blinker;}
 
 ///////////////////// PROCEDURES
 
+#define RL 0b00010000
+#define RR 0b00000010
+#define GL 0b00100000
+#define GR 0b00000100
+#define BL 0b00001000
+#define BR 0b00000001
+#define YL 0b00110000
+#define YR 0b00000110
+#define BLACK 0b00000000
+
+
 static void display_health(enum bt_mesh_gus_cli_state state)
 {
         set_blinker( state == BT_MESH_GUS_CLI_IDENTIFY ? 100 : 0);
@@ -25,35 +36,39 @@ static void display_health(enum bt_mesh_gus_cli_state state)
         {	   
             switch((uint16_t)state) {
              case BT_MESH_GUS_CLI_HEALTHY:
-                dk_set_leds(0b00100100);
+                dk_set_leds(GL|GR);
             break;
             
             case BT_MESH_GUS_CLI_MASKED:
-               dk_set_leds(0b00100110);
+               dk_set_leds(GL|YR);
             break;
                           
             case BT_MESH_GUS_CLI_VACCINATED:
-                dk_set_leds(0b00100101);
+                dk_set_leds(BL|BR);
             break;
 
             case BT_MESH_GUS_CLI_VACCINATED_MASKED:
-                dk_set_leds(0b00100111);
+                dk_set_leds(BL|YR);
             break;
 
             case BT_MESH_GUS_CLI_INFECTED:
-                dk_set_leds(0b00010010);
+                dk_set_leds(RR|RL);
             break;
 
             case BT_MESH_GUS_CLI_VACCINATED_INFECTED:
-                dk_set_leds(0b00010011);
+                dk_set_leds(BL|RR);
             break;
 
-            case BT_MESH_GUS_CLI_INFECTED_MASKED:
-                dk_set_leds(0b00010110);
+            case BT_MESH_GUS_CLI_MASKED_INFECTED:
+                dk_set_leds(YL|RR);
             break;               
                           
             case BT_MESH_GUS_CLI_VACCINATED_MASKED_INFECTED:
-                dk_set_leds(0b00010111);
+                dk_set_leds(YL|YR);
+            break;  
+                         
+            case BT_MESH_GUS_CLI_OFF:
+                dk_set_leds(BLACK);
             break;               
             }
         }
