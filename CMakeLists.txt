@@ -1,17 +1,11 @@
-#
-# Copyright (c) 2019 Nordic Semiconductor ASA
-#
-# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
-#
+# SPDX-License-Identifier: Apache-2.0
+
 cmake_minimum_required(VERSION 3.13.1)
 
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(NONE)
 
-# NORDIC SDK APP START
-target_sources(app PRIVATE
-  src/main.c src/gus_model_handler.c
-  src/model_handler.c)
+FILE(GLOB app_sources src/*.c)
+target_sources(app PRIVATE ${app_sources})
 target_include_directories(app PRIVATE include)
 
-# NORDIC SDK APP END

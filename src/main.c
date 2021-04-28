@@ -11,7 +11,6 @@
 #include <bluetooth/mesh/models.h>
 #include <bluetooth/mesh/dk_prov.h>
 #include <dk_buttons_and_leds.h>
-#include "model_handler.h"
 #include "gus_model_handler.h"
 
 static void bt_ready(int err)
@@ -64,6 +63,10 @@ void main(void)
             if (get_blinker() > 0) {
                 uint16_t ledbit = dec_blinker() % 6;
                 dk_set_leds(0x01 << ledbit);
+            }
+            else {
+//                dk_set_leds(0);
+
             }
         }
 }
