@@ -27,10 +27,10 @@ extern "C" {
 
 /* .. include_startingpoint_gus_cli_rst_1 */
 /** Company ID of the Bluetooth Mesh Gus Client model. */
-#define BT_MESH_GUS_CLI_VENDOR_COMPANY_ID    0x0059  //todo
+#define BT_MESH_GUS_CLI_VENDOR_COMPANY_ID    0xFFFF  // not a real company
 
 /** Model ID of the Bluetooth Mesh Gus Client model. */
-#define BT_MESH_GUS_CLI_VENDOR_MODEL_ID      0x000A
+#define BT_MESH_GUS_CLI_VENDOR_MODEL_ID      0x0042 // answer to life, universe & everything
 
 /** Sign in opcode. */
 #define BT_MESH_GUS_CLI_OP_SIGN_IN BT_MESH_MODEL_OP_3(0x04, \
