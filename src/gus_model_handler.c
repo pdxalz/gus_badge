@@ -143,12 +143,39 @@ static void handle_gus_set_state(struct bt_mesh_gus_cli *gus,
     display_health(state);
 }
 
+static void handle_report_request(struct bt_mesh_gus_cli *gus,
+				 struct bt_mesh_msg_ctx *ctx)
+{
+        uint8_t rttl = ctx->recv_ttl;
+        uint8_t rssi = ctx->recv_rssi;
+        uint8_t report[BT_MESH_GUS_CLI_MSG_LEN_REPORT_REPLY] = {1,2,3, 4,5,6, 7,8,9, 0,1,2};
+        printk("report request: rssi %d, ttl %d\n", rssi, rttl);
+
+        // Send the report back to the teacher
+        bt_mesh_gus_cli_report_reply(gus, ctx, report);
+
+        // Publish the check proximity to all other badges
+        bt_mesh_gus_cli_check_proximity(gus);
+}
+
+
+static void handle_check_proximity(struct bt_mesh_gus_cli *gus,
+				 struct bt_mesh_msg_ctx *ctx)
+{
+        uint8_t rttl = ctx->recv_ttl;
+        uint8_t rssi = ctx->recv_rssi;
+
+        printk("prox: rssi %d, ttl %d\n", rssi, rttl);
+}
+
 
 
 static const struct bt_mesh_gus_cli_handlers gus_handlers = {
 	.start = handle_gus_start,
 	.sign_in = handle_gus_signin,
 	.set_state = handle_gus_set_state,
+        .report_request = handle_report_request,
+        .check_proximity = handle_check_proximity,
 };
 
 static struct bt_mesh_gus_cli gus = {

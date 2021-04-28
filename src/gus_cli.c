@@ -71,7 +71,7 @@ static void handle_set_state(struct bt_mesh_model *model,
     enum bt_mesh_gus_cli_state state;
 
     state = net_buf_simple_pull_u8(buf);
-    
+
     if (gus->handlers->set_state) {
             gus->handlers->set_state(gus, ctx, state);
     }
@@ -308,7 +308,7 @@ int bt_mesh_gus_cli_state_set(struct bt_mesh_gus_cli *gus,
 		.addr = addr,
 		.app_idx = gus->model->keys[0],
 		.send_ttl = BT_MESH_TTL_DEFAULT,
-		.send_rel = true,
+		.send_rel = false,  //todo if true, causes No matching TX context warning
 	};
 
 	BT_MESH_MODEL_BUF_DEFINE(buf, BT_MESH_GUS_CLI_OP_SET_STATE,
@@ -327,7 +327,7 @@ int bt_mesh_gus_cli_name_set(struct bt_mesh_gus_cli *gus,
 		.addr = addr,
 		.app_idx = gus->model->keys[0],
 		.send_ttl = BT_MESH_TTL_DEFAULT,
-		.send_rel = true,
+		.send_rel = false,
 	};
 
 	BT_MESH_MODEL_BUF_DEFINE(buf, BT_MESH_GUS_CLI_OP_SET_NAME,
@@ -350,7 +350,7 @@ int bt_mesh_gus_cli_report_request(struct bt_mesh_gus_cli *gus,
 		.addr = addr,
 		.app_idx = gus->model->keys[0],
 		.send_ttl = BT_MESH_TTL_DEFAULT,
-		.send_rel = true,
+		.send_rel = false,  //todo
 	};
 
 	BT_MESH_MODEL_BUF_DEFINE(buf, BT_MESH_GUS_CLI_OP_REPORT,
@@ -361,21 +361,24 @@ int bt_mesh_gus_cli_report_request(struct bt_mesh_gus_cli *gus,
 }
 
 int bt_mesh_gus_cli_report_reply(struct bt_mesh_gus_cli *gus,
-				  const uint8_t *report)
+				  struct bt_mesh_msg_ctx *ctx, 
+                                  const uint8_t *report)
 {
-	struct bt_mesh_msg_ctx ctx = {
-//todo get addr of sender		.addr = addr,
-		.app_idx = gus->model->keys[0],
-		.send_ttl = BT_MESH_TTL_DEFAULT,
-		.send_rel = true,
-	};
-
-	BT_MESH_MODEL_BUF_DEFINE(buf, BT_MESH_GUS_CLI_OP_REPORT_REPLY,
+	BT_MESH_MODEL_BUF_DEFINE(msg, BT_MESH_GUS_CLI_OP_REPORT_REPLY,
 				 BT_MESH_GUS_CLI_MSG_LEN_REPORT_REPLY);
-	bt_mesh_model_msg_init(&buf, BT_MESH_GUS_CLI_OP_REPORT_REPLY);
+	bt_mesh_model_msg_init(&msg, BT_MESH_GUS_CLI_OP_REPORT_REPLY);
 
-//todo get report data 	net_buf_simple_add_mem(&buf, msg,
-//			       strnlen(msg,
-//				       BT_MESH_GUS_CLI_MSG_LEN_REPORT_REPLY));
-	return bt_mesh_model_send(gus->model, &ctx, &buf, NULL, NULL);  
+        net_buf_simple_add_mem(&msg, report, sizeof(report));
+
+	return bt_mesh_model_send(gus->model, ctx, &msg, NULL, NULL);
 }
+
+
+int bt_mesh_gus_cli_check_proximity(struct bt_mesh_gus_cli *gus)
+{
+//todo set ttl to 1
+	struct net_buf_simple *buf = gus->model->pub->msg;
+	bt_mesh_model_msg_init(buf, BT_MESH_GUS_CLI_OP_CHECK_PROXIMITY);
+	return bt_mesh_model_publish(gus->model);	
+}
+

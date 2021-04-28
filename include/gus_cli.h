@@ -281,8 +281,18 @@ int bt_mesh_gus_cli_report_request(struct bt_mesh_gus_cli *gus,
  * @retval -EAGAIN The device has not been provisioned.
  */
 int bt_mesh_gus_cli_report_reply(struct bt_mesh_gus_cli *gus,
+				  struct bt_mesh_msg_ctx *ctx, 
 				  const uint8_t *report);
 
+/** @brief Check Proximity.
+ *
+ * @param[in] gus     Gus Client model instance to sign into.
+ *
+ * @retval 0 Successfully set the preceive and sent the message.
+ * @retval -EADDRNOTAVAIL Publishing is not configured.
+ * @retval -EAGAIN The device has not been provisioned.
+ */
+int bt_mesh_gus_cli_check_proximity(struct bt_mesh_gus_cli *gus);
 
 /** @cond INTERNAL_HIDDEN */
 extern const struct bt_mesh_model_op _bt_mesh_gus_cli_op[];
