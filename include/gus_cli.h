@@ -21,8 +21,6 @@
 extern "C" {
 #endif
 
-//#define GUS_NAME_LEN 12
-#define NUM_PROXIMITY_REPORTS  4
 #define CONFIG_BT_MESH_GUS_NAME_LENGTH 16
 
 /* .. include_startingpoint_gus_cli_rst_1 */
@@ -60,7 +58,12 @@ extern "C" {
 #define BT_MESH_GUS_CLI_OP_CHECK_PROXIMITY BT_MESH_MODEL_OP_3(0x0A, \
 				       BT_MESH_GUS_CLI_VENDOR_COMPANY_ID)
 
-/* .. include_endpoint_gus_cli_rst_1 */
+#define NUM_PROXIMITY_REPORTS 8
+struct gus_report_data {
+    uint8_t addr;
+    int8_t rssi;
+    }; 
+
 
 #define BT_MESH_GUS_CLI_MSG_MINLEN_MESSAGE 1
 #define BT_MESH_GUS_CLI_MSG_MAXLEN_MESSAGE (\
@@ -68,7 +71,7 @@ extern "C" {
 				     + 1) /* + \0 */
 #define BT_MESH_GUS_CLI_MSG_LEN_SIGN_IN_REPLY (CONFIG_BT_MESH_GUS_NAME_LENGTH + 1)
 #define BT_MESH_GUS_CLI_MSG_LEN_SET_STATE 1
-#define BT_MESH_GUS_CLI_MSG_LEN_REPORT_REPLY (NUM_PROXIMITY_REPORTS*(2+1))
+#define BT_MESH_GUS_CLI_MSG_LEN_REPORT_REPLY (NUM_PROXIMITY_REPORTS*sizeof(struct gus_report_data))
 #define BT_MESH_GUS_CLI_MSG_LEN_REQUEST 0
 
 
@@ -179,13 +182,16 @@ struct bt_mesh_gus_cli_handlers {
 	 *
 	 * @param[in] cli Gus client instance that received the text message.
 	 * @param[in] ctx Context of the incoming message.
+	 * @param[in] addr address of sender.
 	 */
 	void (*const check_proximity)(struct bt_mesh_gus_cli *gus,
-			      struct bt_mesh_msg_ctx *ctx);
+			       struct bt_mesh_msg_ctx *ctx,
+                               uint16_t addr);
+
 
 };
 
-/* .. include_startingpoint_gus_cli_rst_3 */
+
 /**
  * Bluetooth Mesh Gus Client model context.
  */
@@ -205,7 +211,11 @@ struct bt_mesh_gus_cli {
 	/** Current Presence value. */
 	enum bt_mesh_gus_cli_state state;
 };
-/* .. include_endpoint_gus_cli_rst_3 */
+
+
+
+
+
 
 /** @brief Publish the sign in request to the mesh network.
  *

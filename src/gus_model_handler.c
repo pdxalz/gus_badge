@@ -143,29 +143,51 @@ static void handle_gus_set_state(struct bt_mesh_gus_cli *gus,
     display_health(state);
 }
 
+
+static int next_dist = 0;
+static struct gus_report_data dist_data[NUM_PROXIMITY_REPORTS];
+
+static void add_distance_data(uint16_t addr, int8_t rssi, uint8_t rttl)
+{
+    if (next_dist >= NUM_PROXIMITY_REPORTS) {
+        return;
+    }
+    dist_data[next_dist].addr = addr;
+    dist_data[next_dist].rssi = rssi;
+    ++next_dist;
+}
+
+
 static void handle_report_request(struct bt_mesh_gus_cli *gus,
 				 struct bt_mesh_msg_ctx *ctx)
 {
-        uint8_t rttl = ctx->recv_ttl;
-        uint8_t rssi = ctx->recv_rssi;
-        uint8_t report[BT_MESH_GUS_CLI_MSG_LEN_REPORT_REPLY] = {1,2,3, 4,5,6, 7,8,9, 0,1,2};
-        printk("report request: rssi %d, ttl %d\n", rssi, rttl);
-
+    for (int i=0; i<NUM_PROXIMITY_REPORTS; i+=2) {
+        printk("rr (%d %d) (%d %d)\n", 
+                                        (int)dist_data[i+0].addr, (int)dist_data[i+0].rssi,
+                                        (int)dist_data[i+1].addr, (int)dist_data[i+1].rssi);
+    }
         // Send the report back to the teacher
-        bt_mesh_gus_cli_report_reply(gus, ctx, report);
+        bt_mesh_gus_cli_report_reply(gus, ctx, (const uint8_t *) dist_data);
 
         // Publish the check proximity to all other badges
         bt_mesh_gus_cli_check_proximity(gus);
+        next_dist = 0;
 }
 
 
 static void handle_check_proximity(struct bt_mesh_gus_cli *gus,
-				 struct bt_mesh_msg_ctx *ctx)
+				 struct bt_mesh_msg_ctx *ctx,
+                                 uint16_t addr)
 {
         uint8_t rttl = ctx->recv_ttl;
-        uint8_t rssi = ctx->recv_rssi;
+        int8_t rssi = ctx->recv_rssi;
 
-        printk("prox: rssi %d, ttl %d\n", rssi, rttl);
+//        printk("prox: addr %d rssi %d, ttl %d\n", addr, rssi, rttl);
+
+        if (addr != ctx->addr) {
+            add_distance_data(ctx->addr, rssi, rttl);
+        }
+        for (int i=0; i<4; ++i)  printk("px: addr %d rssi %d\n", dist_data[i].addr, dist_data[i].rssi);
 }
 
 
