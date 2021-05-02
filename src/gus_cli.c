@@ -378,11 +378,11 @@ int bt_mesh_gus_cli_report_reply(struct bt_mesh_gus_cli *gus,
 int bt_mesh_gus_cli_check_proximity(struct bt_mesh_gus_cli *gus)
 {
 //todo set ttl to 0
-
 //todo	set_tx_power(BT_HCI_VS_LL_HANDLE_TYPE_ADV, 0, -8);
 
 	struct net_buf_simple *buf = gus->model->pub->msg;
 	bt_mesh_model_msg_init(buf, BT_MESH_GUS_CLI_OP_CHECK_PROXIMITY);
+        gus->model->pub->ttl = 0;
 	return bt_mesh_model_publish(gus->model);	
 }
 

@@ -10,13 +10,50 @@
 #include "gus_model_handler.h"
 #include "gus_cli.h"
 
+#define PROXIMITY_TOO_CLOSE -85
+
 
 uint16_t blinker = 0;
 uint16_t get_blinker(void) {return blinker;}
 void set_blinker(uint16_t val) {blinker = val;}
 uint16_t dec_blinker(void) {return --blinker;}
+static struct gus_report_data dist_data[NUM_PROXIMITY_REPORTS];
 
 ///////////////////// PROCEDURES
+
+
+static void init_distance_data(void) {
+        for (int i=0; i < NUM_PROXIMITY_REPORTS; ++i) {
+                dist_data[i].addr = 0;
+                dist_data[i].rssi = -127;
+        }
+}
+static void add_distance_data(uint16_t addr, int8_t rssi, uint8_t rttl)
+{
+    if (rssi > PROXIMITY_TOO_CLOSE) {
+        // check for duplicate addresses
+        for (int i=0; i < NUM_PROXIMITY_REPORTS; ++i) {
+            if (dist_data[i].addr == addr) {
+                rssi = MAX(rssi, dist_data[i].rssi);
+                dist_data[i].rssi = -127;
+                break;
+            }
+        }
+        // insert into array in order of rssi
+        for (int i=0; i < NUM_PROXIMITY_REPORTS; ++i) {
+            if (rssi > dist_data[i].rssi) {
+                uint8_t ta = dist_data[i].addr;
+                int8_t  tr = dist_data[i].rssi;
+                dist_data[i].addr = addr;
+                dist_data[i].rssi = rssi;
+                addr = ta;
+                rssi = tr;
+            }
+        }
+    }
+ }
+
+
 
 #define RL 0b00010000
 #define RR 0b00000010
@@ -107,7 +144,7 @@ BT_MESH_HEALTH_PUB_DEFINE(health_pub, 0);
 
 static void handle_gus_start(struct bt_mesh_gus_cli *gus)
 {
-
+    init_distance_data();
 }
 
 static const uint8_t * spare_name(uint16_t addr)
@@ -144,19 +181,6 @@ static void handle_gus_set_state(struct bt_mesh_gus_cli *gus,
 }
 
 
-static int next_dist = 0;
-static struct gus_report_data dist_data[NUM_PROXIMITY_REPORTS];
-
-static void add_distance_data(uint16_t addr, int8_t rssi, uint8_t rttl)
-{
-    if (next_dist >= NUM_PROXIMITY_REPORTS) {
-        return;
-    }
-    dist_data[next_dist].addr = addr;
-    dist_data[next_dist].rssi = rssi;
-    ++next_dist;
-}
-
 
 static void handle_report_request(struct bt_mesh_gus_cli *gus,
 				 struct bt_mesh_msg_ctx *ctx)
@@ -171,7 +195,7 @@ static void handle_report_request(struct bt_mesh_gus_cli *gus,
 
         // Publish the check proximity to all other badges
         bt_mesh_gus_cli_check_proximity(gus);
-        next_dist = 0;
+        init_distance_data();
 }
 
 
@@ -182,12 +206,12 @@ static void handle_check_proximity(struct bt_mesh_gus_cli *gus,
         uint8_t rttl = ctx->recv_ttl;
         int8_t rssi = ctx->recv_rssi;
 
-//        printk("prox: addr %d rssi %d, ttl %d\n", addr, rssi, rttl);
+        printk("prox: addr %d rssi %d, ttl %d\n", addr, rssi, rttl);
 
         if (addr != ctx->addr) {
             add_distance_data(ctx->addr, rssi, rttl);
         }
-        for (int i=0; i<4; ++i)  printk("px: addr %d rssi %d\n", dist_data[i].addr, dist_data[i].rssi);
+//        for (int i=0; i<4; ++i)  printk("px: addr %d rssi %d\n", dist_data[i].addr, dist_data[i].rssi);
 }
 
 
