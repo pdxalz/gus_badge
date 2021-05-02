@@ -383,6 +383,7 @@ int bt_mesh_gus_cli_check_proximity(struct bt_mesh_gus_cli *gus)
 	struct net_buf_simple *buf = gus->model->pub->msg;
 	bt_mesh_model_msg_init(buf, BT_MESH_GUS_CLI_OP_CHECK_PROXIMITY);
         gus->model->pub->ttl = 0;
+        gus->model->pub->send_rel = false;
 	return bt_mesh_model_publish(gus->model);	
 }
 
