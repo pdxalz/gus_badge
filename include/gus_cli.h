@@ -58,9 +58,9 @@ extern "C" {
 #define BT_MESH_GUS_CLI_OP_CHECK_PROXIMITY BT_MESH_MODEL_OP_3(0x0A, \
 				       BT_MESH_GUS_CLI_VENDOR_COMPANY_ID)
 
-#define NUM_PROXIMITY_REPORTS 8
+#define NUM_PROXIMITY_REPORTS 6
 struct gus_report_data {
-    uint8_t addr;
+    uint16_t addr;
     int8_t rssi;
     }; 
 
