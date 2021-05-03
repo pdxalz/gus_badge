@@ -13,6 +13,7 @@
 #include <dk_buttons_and_leds.h>
 #include "gus_model_handler.h"
 #include "tx_power.h"
+#include "gus_leds.h"
 
 //#include <bluetooth/hci.h>
 #include <bluetooth/hci_vs.h>
@@ -33,7 +34,7 @@ static void bt_ready(int err)
 	printk("Bluetooth initialized\n");
 
 
-	dk_leds_init();
+	gus_leds_init();
 	dk_buttons_init(NULL);
 
 	err = bt_mesh_init(bt_mesh_dk_prov_init(), gus_model_handler_init());
@@ -96,7 +97,7 @@ int count = 0;
             k_sleep(K_MSEC(100));
             if (get_blinker() >= 0) {
                 uint16_t ledbit = dec_blinker() % 6;
-                dk_set_leds(0x01 << ledbit);
+                gus_set_leds(0x01 << ledbit);
             }
             else {
 //                dk_set_leds(0);

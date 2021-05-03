@@ -7,6 +7,7 @@
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/mesh/models.h>
 #include <dk_buttons_and_leds.h>
+#include "gus_leds.h"
 #include "gus_model_handler.h"
 #include "gus_cli.h"
 
@@ -73,39 +74,39 @@ static void display_health(enum bt_mesh_gus_cli_state state)
         {	   
             switch((uint16_t)state) {
              case BT_MESH_GUS_CLI_HEALTHY:
-                dk_set_leds(GL|GR);
+                gus_set_leds(GL|GR);
             break;
             
             case BT_MESH_GUS_CLI_MASKED:
-               dk_set_leds(GL|YR);
+               gus_set_leds(GL|YR);
             break;
                           
             case BT_MESH_GUS_CLI_VACCINATED:
-                dk_set_leds(BL|BR);
+                gus_set_leds(BL|BR);
             break;
 
             case BT_MESH_GUS_CLI_VACCINATED_MASKED:
-                dk_set_leds(BL|YR);
+                gus_set_leds(BL|YR);
             break;
 
             case BT_MESH_GUS_CLI_INFECTED:
-                dk_set_leds(RR|RL);
+                gus_set_leds(RR|RL);
             break;
 
             case BT_MESH_GUS_CLI_VACCINATED_INFECTED:
-                dk_set_leds(BL|RR);
+                gus_set_leds(BL|RR);
             break;
 
             case BT_MESH_GUS_CLI_MASKED_INFECTED:
-                dk_set_leds(YL|RR);
+                gus_set_leds(YL|RR);
             break;               
                           
             case BT_MESH_GUS_CLI_VACCINATED_MASKED_INFECTED:
-                dk_set_leds(YL|YR);
+                gus_set_leds(YL|YR);
             break;  
                          
             case BT_MESH_GUS_CLI_OFF:
-                dk_set_leds(BLACK);
+                gus_set_leds(BLACK);
             break;               
             }
         }
