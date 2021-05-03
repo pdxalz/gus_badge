@@ -13,10 +13,10 @@
 #define PROXIMITY_TOO_CLOSE -85
 
 
-uint16_t blinker = 0;
-uint16_t get_blinker(void) {return blinker;}
+int blinker = 0;
+int get_blinker(void) {return blinker;}
 void set_blinker(uint16_t val) {blinker = val;}
-uint16_t dec_blinker(void) {return --blinker;}
+int dec_blinker(void) {return --blinker;}
 static struct gus_report_data dist_data[NUM_PROXIMITY_REPORTS];
 
 ///////////////////// PROCEDURES
@@ -118,7 +118,7 @@ static void display_health(enum bt_mesh_gus_cli_state state)
 
 static void attention_on(struct bt_mesh_model *mod)
 {
-	set_blinker(100);
+	set_blinker(81);
 }
 
 static void attention_off(struct bt_mesh_model *mod)

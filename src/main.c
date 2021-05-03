@@ -94,7 +94,7 @@ int count = 0;
             }
             */    
             k_sleep(K_MSEC(100));
-            if (get_blinker() > 0) {
+            if (get_blinker() >= 0) {
                 uint16_t ledbit = dec_blinker() % 6;
                 dk_set_leds(0x01 << ledbit);
             }
