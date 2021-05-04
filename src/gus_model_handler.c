@@ -13,12 +13,24 @@
 
 #define PROXIMITY_TOO_CLOSE -85
 
-
-int blinker = 0;
-int get_blinker(void) {return blinker;}
-void set_blinker(uint16_t val) {blinker = val;}
-int dec_blinker(void) {return --blinker;}
 static struct gus_report_data dist_data[NUM_PROXIMITY_REPORTS];
+static int blinker = -1;
+
+int get_blinker(void) 
+{
+    return blinker;
+}
+
+void set_blinker(int val) 
+{
+    blinker = val;
+}
+
+int dec_blinker(void) 
+{
+    return --blinker;
+}
+
 
 ///////////////////// PROCEDURES
 
@@ -69,7 +81,8 @@ static void add_distance_data(uint16_t addr, int8_t rssi, uint8_t rttl)
 
 static void display_health(enum bt_mesh_gus_cli_state state)
 {
-        set_blinker( state == BT_MESH_GUS_CLI_IDENTIFY ? 100 : 0);
+printk("health: %d state\n", state);
+        set_blinker( state == BT_MESH_GUS_CLI_IDENTIFY ? 100 : -1);
 	if (state != BT_MESH_GUS_CLI_IDENTIFY) 
         {	   
             switch((uint16_t)state) {
