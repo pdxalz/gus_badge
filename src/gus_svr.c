@@ -56,21 +56,6 @@ static void handle_sign_in(struct bt_mesh_model *model,
 	}
 }
 
-static void handle_sign_in_reply(struct bt_mesh_model *model,
-			   struct bt_mesh_msg_ctx *ctx,
-			   struct net_buf_simple *buf)
-{
-	struct bt_mesh_gus *gus = model->user_data;
-	const uint8_t *name;
-
-	name = extract_name(buf);
-
-	if (gus->handlers->sign_in_reply) {
-		gus->handlers->sign_in_reply(gus, ctx, name);
-	}
-}
-
-
 static void handle_set_state(struct bt_mesh_model *model,
 			    struct bt_mesh_msg_ctx *ctx,
 			    struct net_buf_simple *buf)
@@ -121,7 +106,7 @@ static void handle_report_reply(struct bt_mesh_model *model,
 	struct bt_mesh_gus *gus = model->user_data;
 	const uint8_t *msg;
 
-	msg = extract_name(buf);  //todo extract report
+	msg = extract_name(buf);
 
 	if (gus->handlers->report_reply) {
 		gus->handlers->report_reply(gus, ctx, msg);
@@ -151,11 +136,6 @@ const struct bt_mesh_model_op _bt_mesh_gus_svr_op[] = {
 		BT_MESH_GUS_OP_SIGN_IN,
 		BT_MESH_GUS_MSG_LEN_REQUEST,
 		handle_sign_in
-	},
-	{
-		BT_MESH_GUS_OP_SIGN_IN_REPLY,
-		BT_MESH_GUS_MSG_MINLEN_MESSAGE,
-		handle_sign_in_reply
 	},
 	{
 		BT_MESH_GUS_OP_SET_STATE,
@@ -190,7 +170,7 @@ const struct bt_mesh_model_op _bt_mesh_gus_svr_op[] = {
 
 
 
-//todo hopefully not needed
+//todo
 
 // static int bt_mesh_chat_cli_update_handler(struct bt_mesh_model *model)
 // {
@@ -232,7 +212,7 @@ static int bt_mesh_gus_cli_settings_set(struct bt_mesh_model *model,
 
 
 
-static int bt_mesh_gus_cli_init(struct bt_mesh_model *model)
+static int bt_mesh_gus_svr_init(struct bt_mesh_model *model)
 {
 	struct bt_mesh_gus *gus = model->user_data;
 
@@ -248,7 +228,7 @@ static int bt_mesh_gus_cli_init(struct bt_mesh_model *model)
 }
 
 
-static int bt_mesh_gus_cli_start(struct bt_mesh_model *model)
+static int bt_mesh_gus_svr_start(struct bt_mesh_model *model)
 {
 	struct bt_mesh_gus *gus = model->user_data;
 
@@ -260,7 +240,7 @@ static int bt_mesh_gus_cli_start(struct bt_mesh_model *model)
 }
 
 
-static void bt_mesh_gus_cli_reset(struct bt_mesh_model *model)
+static void bt_mesh_gus_svr_reset(struct bt_mesh_model *model)
 {
 	struct bt_mesh_gus *gus = model->user_data;
 
@@ -274,12 +254,12 @@ static void bt_mesh_gus_cli_reset(struct bt_mesh_model *model)
 
 
 const struct bt_mesh_model_cb _bt_mesh_gus_svr_cb = {
-	.init = bt_mesh_gus_cli_init,
-	.start = bt_mesh_gus_cli_start,
+	.init = bt_mesh_gus_svr_init,
+	.start = bt_mesh_gus_svr_start,
 #ifdef CONFIG_BT_SETTINGS
 	.settings_set = bt_mesh_gus_cli_settings_set,
 #endif
-	.reset = bt_mesh_gus_cli_reset,
+	.reset = bt_mesh_gus_svr_reset,
 };
 
 
@@ -307,66 +287,6 @@ int bt_mesh_gus_svr_sign_in_reply(struct bt_mesh_gus *gus,
        	net_buf_simple_add_u8(&msg, '\0');
 
 	return bt_mesh_model_send(gus->model, ctx, &msg, NULL, NULL);
-}
-
-int bt_mesh_gus_svr_state_set(struct bt_mesh_gus *gus,
-				  uint16_t addr,
-				  enum bt_mesh_gus_state state)
-{				  
-	struct bt_mesh_msg_ctx ctx = {
-		.addr = addr,
-		.app_idx = gus->model->keys[0],
-		.send_ttl = BT_MESH_TTL_DEFAULT,
-		.send_rel = false,  //todo if true, causes No matching TX context warning
-	};
-
-	BT_MESH_MODEL_BUF_DEFINE(buf, BT_MESH_GUS_OP_SET_STATE,
-				 BT_MESH_GUS_MSG_LEN_SET_STATE);
-	bt_mesh_model_msg_init(&buf, BT_MESH_GUS_OP_SET_STATE);
-	net_buf_simple_add_u8(&buf, state);
-
-	return bt_mesh_model_send(gus->model, &ctx, &buf, NULL, NULL);
-}
-
-int bt_mesh_gus_svr_name_set(struct bt_mesh_gus *gus,
-				  uint16_t addr,
-				  const uint8_t *name)
-{
-	struct bt_mesh_msg_ctx ctx = {
-		.addr = addr,
-		.app_idx = gus->model->keys[0],
-		.send_ttl = BT_MESH_TTL_DEFAULT,
-		.send_rel = false,  //todo
-	};
-
-	BT_MESH_MODEL_BUF_DEFINE(buf, BT_MESH_GUS_OP_SET_NAME,
-				 CONFIG_BT_MESH_GUS_NAME_LENGTH);
-	bt_mesh_model_msg_init(&buf, BT_MESH_GUS_OP_SET_NAME);
-
-	net_buf_simple_add_mem(&buf, name, strlen(name));
-			       //strnlen(name,
-				      // CONFIG_BT_MESH_GUS_CLI_MESSAGE_LENGTH));
-	net_buf_simple_add_u8(&buf, '\0');
-
-	return bt_mesh_model_send(gus->model, &ctx, &buf, NULL, NULL);  
-}
-
-
-int bt_mesh_gus_svr_report_request(struct bt_mesh_gus *gus,
-				  uint16_t addr)
-{
-	struct bt_mesh_msg_ctx ctx = {
-		.addr = addr,
-		.app_idx = gus->model->keys[0],
-		.send_ttl = BT_MESH_TTL_DEFAULT,
-		.send_rel = false,  //todo
-	};
-
-	BT_MESH_MODEL_BUF_DEFINE(buf, BT_MESH_GUS_OP_REPORT,
-				 BT_MESH_GUS_MSG_LEN_REQUEST);
-	bt_mesh_model_msg_init(&buf, BT_MESH_GUS_OP_REPORT);
-
-	return bt_mesh_model_send(gus->model, &ctx, &buf, NULL, NULL);	
 }
 
 int bt_mesh_gus_svr_report_reply(struct bt_mesh_gus *gus,

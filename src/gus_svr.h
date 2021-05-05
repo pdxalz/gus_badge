@@ -14,13 +14,16 @@
 extern "C" {
 #endif
 
-#define CONFIG_BT_MESH_GUS_NAME_LENGTH 16
+#define CONFIG_BT_MESH_GUS_NAME_LENGTH 12   // max length of a name
+#define NUM_PROXIMITY_REPORTS 6             // number of proximity records
+                                            // sent in a message
 
 /** Company ID of the Bluetooth Mesh Gus model. */
 #define BT_MESH_GUS_VENDOR_COMPANY_ID    0xFFFF  // not a real company
 
 /** Model ID of the Bluetooth Mesh Gus model. */
-#define BT_MESH_GUS_VENDOR_MODEL_ID      0x0042 // answer to life, universe & everything
+#define BT_MESH_GUS_VENDOR_MODEL_ID      0x0042 // answer to life, universe &
+                                                // everything
 
 /** Sign in opcode. */
 #define BT_MESH_GUS_OP_SIGN_IN BT_MESH_MODEL_OP_3(0x04, \
@@ -50,7 +53,7 @@ extern "C" {
 #define BT_MESH_GUS_OP_CHECK_PROXIMITY BT_MESH_MODEL_OP_3(0x0A, \
 				       BT_MESH_GUS_VENDOR_COMPANY_ID)
 
-#define NUM_PROXIMITY_REPORTS 6
+
 struct gus_report_data {
     uint16_t addr;
     int8_t rssi;
@@ -116,17 +119,6 @@ struct bt_mesh_gus_handlers {
 	void (*const sign_in)(struct bt_mesh_gus *gus,
 			       struct bt_mesh_msg_ctx *ctx,
                                uint16_t addr);
-
-	/** @brief Handler for a sign in reply.
-	 *
-	 * @param[in] Gus Server instance that received the reply.
-	 * @param[in] ctx Context of the incoming message.
-	 * @param[in] msg Pointer to a name terminated with
-	 * a null character, '\0'.
-	 */
-	void (*const sign_in_reply)(struct bt_mesh_gus *gus,
-				    struct bt_mesh_msg_ctx *ctx,
-				      const uint8_t *msg);
 
 	/** @brief Handler for a set state message.
 	 *
@@ -204,32 +196,6 @@ struct bt_mesh_gus {
 
 
 
-
-
-
-/** @brief Publish the sign in request to the mesh network.
- *
- * @param[in] gus     Gus Server model instance to sign into.
- *
- * @retval 0 Successfully set the preceive and sent the message.
- * @retval -EADDRNOTAVAIL Publishing is not configured.
- * @retval -EAGAIN The device has not been provisioned.
- */
-int bt_mesh_gus_svr_sign_in(struct bt_mesh_gus *gus);
-
-/** @brief Send a reply for the sign in request to the mesh network.
- *
- * @param[in] gus     Gus Server model instance to sign into.
- * @param[in] name Pointer to a name. Must be terminated with
- * a null character, '\0'.
- *
- * @retval 0 Successfully set the preceive and sent the message.
- * @retval -EADDRNOTAVAIL Publishing is not configured.
- * @retval -EAGAIN The device has not been provisioned.
- */
-int bt_mesh_gus_svr_sign_in_reply(struct bt_mesh_gus *gus, 
-                                    struct bt_mesh_msg_ctx *ctx, 
-                                    const uint8_t * name);
 /** @brief Set the server state.
  *
  * @param[in] gus     Gus Server model instance to set presence on.
@@ -243,33 +209,6 @@ int bt_mesh_gus_svr_sign_in_reply(struct bt_mesh_gus *gus,
 int bt_mesh_gus_svr_state_set(struct bt_mesh_gus *gus,
 				  uint16_t addr,
 				  enum bt_mesh_gus_state state);
-
-/** @brief Set the server name.
- *
- * @param[in] Gus server model instance.
- * @param[in] addr    Address of the gus server to set the state of.
- * @param[in] name Pointer to a name. Must be terminated with
- * a null character, '\0'.
- *
- * @retval 0 Successfully sent the message.
- * @retval -EADDRNOTAVAIL Publishing is not configured.
- * @retval -EAGAIN The device has not been provisioned.
- */
-int bt_mesh_gus_svr_name_set(struct bt_mesh_gus *gus,
-				  uint16_t addr,
-				  const uint8_t *name);
-
-/** @brief Request a proximity report.
- *
- * @param[in] gus     Gus server model instance to sign into.
- * @param[in] addr    Address of the gus server.
- *
- * @retval 0 Successfully set the preceive and sent the message.
- * @retval -EADDRNOTAVAIL Publishing is not configured.
- * @retval -EAGAIN The device has not been provisioned.
- */
-int bt_mesh_gus_svr_report_request(struct bt_mesh_gus *gus,
-				  uint16_t addr);
 
 /** @brief Proximity report reply.
  *
