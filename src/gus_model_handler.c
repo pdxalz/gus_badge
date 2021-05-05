@@ -9,7 +9,7 @@
 #include <dk_buttons_and_leds.h>
 #include "gus_leds.h"
 #include "gus_model_handler.h"
-#include "gus_cli.h"
+#include "gus_svr.h"
 
 #define PROXIMITY_TOO_CLOSE -85
 
@@ -79,46 +79,46 @@ static void add_distance_data(uint16_t addr, int8_t rssi, uint8_t rttl)
 #define BLACK 0b00000000
 
 
-static void display_health(enum bt_mesh_gus_cli_state state)
+static void display_health(enum bt_mesh_gus_state state)
 {
 printk("health: %d state\n", state);
-        set_blinker( state == BT_MESH_GUS_CLI_IDENTIFY ? 100 : -1);
-	if (state != BT_MESH_GUS_CLI_IDENTIFY) 
+        set_blinker( state == BT_MESH_GUS_IDENTIFY ? 100 : -1);
+	if (state != BT_MESH_GUS_IDENTIFY) 
         {	   
             switch((uint16_t)state) {
-             case BT_MESH_GUS_CLI_HEALTHY:
+             case BT_MESH_GUS_HEALTHY:
                 gus_set_leds(GL|GR);
             break;
             
-            case BT_MESH_GUS_CLI_MASKED:
+            case BT_MESH_GUS_MASKED:
                gus_set_leds(GL|YR);
             break;
                           
-            case BT_MESH_GUS_CLI_VACCINATED:
+            case BT_MESH_GUS_VACCINATED:
                 gus_set_leds(BL|BR);
             break;
 
-            case BT_MESH_GUS_CLI_VACCINATED_MASKED:
+            case BT_MESH_GUS_VACCINATED_MASKED:
                 gus_set_leds(BL|YR);
             break;
 
-            case BT_MESH_GUS_CLI_INFECTED:
+            case BT_MESH_GUS_INFECTED:
                 gus_set_leds(RR|RL);
             break;
 
-            case BT_MESH_GUS_CLI_VACCINATED_INFECTED:
+            case BT_MESH_GUS_VACCINATED_INFECTED:
                 gus_set_leds(BL|RR);
             break;
 
-            case BT_MESH_GUS_CLI_MASKED_INFECTED:
+            case BT_MESH_GUS_MASKED_INFECTED:
                 gus_set_leds(YL|RR);
             break;               
                           
-            case BT_MESH_GUS_CLI_VACCINATED_MASKED_INFECTED:
+            case BT_MESH_GUS_VACCINATED_MASKED_INFECTED:
                 gus_set_leds(YL|YR);
             break;  
                          
-            case BT_MESH_GUS_CLI_OFF:
+            case BT_MESH_GUS_OFF:
                 gus_set_leds(BLACK);
             break;               
             }
@@ -156,7 +156,7 @@ BT_MESH_HEALTH_PUB_DEFINE(health_pub, 0);
 // ***************************** GUS model setup *******************************
 // ******************************************************************************
 
-static void handle_gus_start(struct bt_mesh_gus_cli *gus)
+static void handle_gus_start(struct bt_mesh_gus *gus)
 {
     init_distance_data();
 }
@@ -172,7 +172,7 @@ static const uint8_t * spare_name(uint16_t addr)
 }
 
 
-static void handle_gus_signin(struct bt_mesh_gus_cli *gus,
+static void handle_gus_signin(struct bt_mesh_gus *gus,
 			       struct bt_mesh_msg_ctx *ctx,
                                uint16_t addr)
 {
@@ -184,19 +184,19 @@ static void handle_gus_signin(struct bt_mesh_gus_cli *gus,
     }
     printk("handle signin %d %s\n", addr, name);
 
-    (void)bt_mesh_gus_cli_sign_in_reply(gus, ctx, name);
+    (void)bt_mesh_gus_svr_sign_in_reply(gus, ctx, name);
 }
 
-static void handle_gus_set_state(struct bt_mesh_gus_cli *gus,
+static void handle_gus_set_state(struct bt_mesh_gus *gus,
 				 struct bt_mesh_msg_ctx *ctx,
-				 enum bt_mesh_gus_cli_state state)
+				 enum bt_mesh_gus_state state)
 {
     display_health(state);
 }
 
 
 
-static void handle_report_request(struct bt_mesh_gus_cli *gus,
+static void handle_report_request(struct bt_mesh_gus *gus,
 				 struct bt_mesh_msg_ctx *ctx)
 {
     for (int i=0; i<NUM_PROXIMITY_REPORTS; i+=2) {
@@ -205,15 +205,15 @@ static void handle_report_request(struct bt_mesh_gus_cli *gus,
                                         (int)dist_data[i+1].addr, (int)dist_data[i+1].rssi);
     }
         // Send the report back to the teacher
-        bt_mesh_gus_cli_report_reply(gus, ctx, (const uint8_t *) dist_data);
+        bt_mesh_gus_svr_report_reply(gus, ctx, (const uint8_t *) dist_data);
 
         // Publish the check proximity to all other badges
-        bt_mesh_gus_cli_check_proximity(gus);
+        bt_mesh_gus_svr_check_proximity(gus);
         init_distance_data();
 }
 
 
-static void handle_check_proximity(struct bt_mesh_gus_cli *gus,
+static void handle_check_proximity(struct bt_mesh_gus *gus,
 				 struct bt_mesh_msg_ctx *ctx,
                                  uint16_t addr)
 {
@@ -230,7 +230,7 @@ static void handle_check_proximity(struct bt_mesh_gus_cli *gus,
 
 
 
-static const struct bt_mesh_gus_cli_handlers gus_handlers = {
+static const struct bt_mesh_gus_handlers gus_handlers = {
 	.start = handle_gus_start,
 	.sign_in = handle_gus_signin,
 	.set_state = handle_gus_set_state,
@@ -238,7 +238,7 @@ static const struct bt_mesh_gus_cli_handlers gus_handlers = {
         .check_proximity = handle_check_proximity,
 };
 
-static struct bt_mesh_gus_cli gus = {
+static struct bt_mesh_gus gus = {
 	.handlers = &gus_handlers,
 };
 
@@ -248,7 +248,7 @@ static struct bt_mesh_elem elements[] = {
 		BT_MESH_MODEL_LIST(
 			BT_MESH_MODEL_CFG_SRV,
 			BT_MESH_MODEL_HEALTH_SRV(&health_srv, &health_pub)),
-		BT_MESH_MODEL_LIST(BT_MESH_MODEL_GUS_CLI(&gus))),
+		BT_MESH_MODEL_LIST(BT_MESH_MODEL_GUS_SVR(&gus))),
 };
 
 static const struct bt_mesh_comp comp = {
@@ -261,9 +261,9 @@ void model_handler_set_state(uint16_t addr, uint8_t state)
 {
     int err;
 
-    enum bt_mesh_gus_cli_state gus_state = state;
+    enum bt_mesh_gus_state gus_state = state;
         printk("identify %d\n", addr);
-    err = bt_mesh_gus_cli_state_set(&gus, addr, gus_state);
+    err = bt_mesh_gus_svr_state_set(&gus, addr, gus_state);
     if (err) {
         printk("identify %d %d failed %d\n", addr,state, err);
     }
