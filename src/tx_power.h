@@ -9,18 +9,14 @@
  * @brief Gus Model handler
  */
 
-#ifndef GUS_MODEL_HANDLER_H__
-#define GUS_MODEL_HANDLER_H__
-
-#include <bluetooth/mesh.h>
+#ifndef TX_POWER_H__
+#define TX_POWER_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-const struct bt_mesh_comp *gus_model_handler_init(void);
-uint16_t get_blinker(void);
-uint16_t dec_blinker(void);
+void set_tx_power(uint8_t handle_type, uint16_t handle, int8_t tx_pwr_lvl);
 
 #ifdef __cplusplus
 }
