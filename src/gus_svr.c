@@ -99,21 +99,6 @@ static void handle_report_request(struct bt_mesh_model *model,
 }
 
 
-static void handle_report_reply(struct bt_mesh_model *model,
-				  struct bt_mesh_msg_ctx *ctx,
-				  struct net_buf_simple *buf)
-{
-	struct bt_mesh_gus *gus = model->user_data;
-	const uint8_t *msg;
-
-	msg = extract_name(buf);
-
-	if (gus->handlers->report_reply) {
-		gus->handlers->report_reply(gus, ctx, msg);
-	}
-}
-
-
 static void handle_check_proximity(struct bt_mesh_model *model,
 				 struct bt_mesh_msg_ctx *ctx,
 				 struct net_buf_simple *buf)
@@ -151,11 +136,6 @@ const struct bt_mesh_model_op _bt_mesh_gus_svr_op[] = {
 		BT_MESH_GUS_OP_REPORT,
 		BT_MESH_GUS_MSG_LEN_REQUEST,
 		handle_report_request
-	},
-	{
-		BT_MESH_GUS_OP_REPORT_REPLY,
-		BT_MESH_GUS_MSG_MINLEN_MESSAGE,
-		handle_report_reply
 	},
 	{
 		BT_MESH_GUS_OP_CHECK_PROXIMITY,
@@ -266,14 +246,6 @@ const struct bt_mesh_model_cb _bt_mesh_gus_svr_cb = {
 /////////////////////////////
 // public access functions
 /////////////////////////////
-
-int bt_mesh_gus_svr_sign_in(struct bt_mesh_gus *gus)
-{
-	struct net_buf_simple *buf = gus->model->pub->msg;
-	bt_mesh_model_msg_init(buf, BT_MESH_GUS_OP_SIGN_IN);
-	return bt_mesh_model_publish(gus->model);	
-}
-
 int bt_mesh_gus_svr_sign_in_reply(struct bt_mesh_gus *gus, 
                                     struct bt_mesh_msg_ctx *ctx, 
                                     const uint8_t * name)

@@ -56,8 +56,7 @@ enum state {
 
 
 static const struct device *led_devs[ARRAY_SIZE(led_pins)];
-static struct gpio_callback gpio_cb;
-static struct k_spinlock lock;
+
 
 
 

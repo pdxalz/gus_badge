@@ -257,19 +257,6 @@ static const struct bt_mesh_comp comp = {
 	.elem_count = ARRAY_SIZE(elements),
 };
 
-void model_handler_set_state(uint16_t addr, uint8_t state)
-{
-    int err;
-
-    enum bt_mesh_gus_state gus_state = state;
-        printk("identify %d\n", addr);
-    err = bt_mesh_gus_svr_state_set(&gus, addr, gus_state);
-    if (err) {
-        printk("identify %d %d failed %d\n", addr,state, err);
-    }
-}
-
-
 static void button_handler_cb(uint32_t pressed, uint32_t changed)
 {
     if (!bt_mesh_is_provisioned()) {

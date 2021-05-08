@@ -18,7 +18,7 @@
 #include <bluetooth/gatt.h>
 #include <sys/byteorder.h>
 
-static const int8_t txp[] = {4, 0, -3, -8, -15, -18, -23, -30};
+//static const int8_t txp[] = {4, 0, -3, -8, -15, -18, -23, -30};
 
 void set_tx_power(uint8_t handle_type, uint16_t handle, int8_t tx_pwr_lvl)
 {

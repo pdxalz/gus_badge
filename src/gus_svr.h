@@ -196,19 +196,20 @@ struct bt_mesh_gus {
 
 
 
-/** @brief Set the server state.
+/** @brief Reply to the sign in request.
  *
- * @param[in] gus     Gus Server model instance to set presence on.
- * @param[in] addr    Address of the gus server to set the state of.
- * @param[in] state   New server state.
+ * @param[in] gus    Gus Server model instance to set presence on.
+ * @param[in] ctx    Context of the original message.
+ * @param[in] name   Name associated with the badge.
  *
  * @retval 0 Successfully set the preceive and sent the message.
  * @retval -EADDRNOTAVAIL Publishing is not configured.
  * @retval -EAGAIN The device has not been provisioned.
  */
-int bt_mesh_gus_svr_state_set(struct bt_mesh_gus *gus,
-				  uint16_t addr,
-				  enum bt_mesh_gus_state state);
+int bt_mesh_gus_svr_sign_in_reply(struct bt_mesh_gus *gus, 
+                                    struct bt_mesh_msg_ctx *ctx, 
+                                    const uint8_t * name);
+
 
 /** @brief Proximity report reply.
  *
