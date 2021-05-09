@@ -164,8 +164,9 @@ static void handle_gus_start(struct bt_mesh_gus *gus)
 static const uint8_t * spare_name(uint16_t addr)
 {
     const uint8_t * spare_names[] = {
-    "Alan",    "Ally",    "Brenda", "Bryan", "Carol", "Craig",
-    "Dalene",  "Darrell", "Eric"    };
+    "Anja",    "Birgit",    "Casper", "Dag", "Eirik", "Fritjof",
+    "Gunvor",  "Hildur", "Ingolf", "Ingolf",  "Jorg", "Kjerstin",
+    "Lisbet",  "Mikaela", "Niklas", "Oydis",  "Peder", "Ragnhild", };
 
 #define SPARE_NAME_LEN (sizeof(spare_names)/ sizeof(char *))
     return spare_names[addr % SPARE_NAME_LEN];
