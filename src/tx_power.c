@@ -4,6 +4,16 @@
  * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
  */
 
+/////////////////////////////////////////////////////////////////////////
+// This code was copied from the zephyr HCI example.
+// It is currently not being used.  Changing power levels seems to work
+// for everything except mesh communication.
+// The goal was to reduce the power levels for the poximity checking
+// operation to improve the ability to determine the distance between 
+// nodes, however the default power levels seem sufficient to demo
+// a proof of concept.
+/////////////////////////////////////////////////////////////////////////
+
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/mesh/models.h>
 #include <bluetooth/mesh/dk_prov.h>
