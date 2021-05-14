@@ -4,6 +4,35 @@
  * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
  */
 
+//////////////////////////////////////////////////////////////////////////////
+// GUS Server model - API for the Bluetooth Mesh Gus Server model.
+// This code originated from the Nordic Bluetooth mesh chat sample.
+//
+// Messages sent:
+// Check Proximity - This is a special message sent from a badge to all other
+//    badges to check distances between nodes.  A badges receiving this
+//    message records the address of the sending badge and the rssi of the
+//    message.
+//    The sequence of events is:
+//       Client sends badge(1) request for report
+//       Badge(1) sends the report containig the recent contacts and clears
+//                the contact information.  It then sends the Check Proximity
+//                message to all other badges.
+//       All other badges record sender address and rssi contact information
+//                to be used to create the contact report.
+//       Client sends badge(2) request for report and the process repeats.
+//       All badges eventually get asked for a report and in the process create
+//                create new proximity reports.
+//
+// Message handlers:
+// Sign-in - replys to the sign-in message providing the client
+//     with the badges name and address
+// Report request - reply to the report request sending the contact information
+//      for the most significant contacts.
+// Check Proximity - Records the sending badge's address and the rssi value
+//      which is use to create a report for the report request message
+//////////////////////////////////////////////////////////////////////////////
+
 #ifndef BT_MESH_GUS_SVR_H__
 #define BT_MESH_GUS_SVR_H__
 

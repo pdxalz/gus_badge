@@ -7,11 +7,11 @@
 #ifndef GUS_LEDS_H__
 #define GUS_LEDS_H__
 
-/** @file dk_buttons_and_leds.h
- * @brief Module for handling buttons and LEDs on Nordic DKs.
- * @defgroup dk_buttons_and_leds DK buttons and LEDs
- * @{
- */
+///////////////////////////////////////////////////////////////////////////////
+// GUS LEDs is a hacked up version of the Nordic LED driver dk_buttons_and_leds
+// with all of the button code removed and the LEDs extended to support
+// six LEDs.
+///////////////////////////////////////////////////////////////////////////////
 
 #include <zephyr/types.h>
 #include <sys/slist.h>
